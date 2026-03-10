@@ -1,0 +1,5 @@
+services:
+  trace-by-hand:
+    build: .
+    ports:
+      - "8080:8080"
