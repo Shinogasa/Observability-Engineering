@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,6 +20,11 @@ const (
 func RootHandler(w http.ResponseWriter, r *http.Request) {
 	// トレースデータの初期化
 	traceData := make(map[string]interface{})
+	traceData["tags"] = make(map[string]interface{})
+
+	hostname, _ := os.Hostname()
+	traceData["tags"].(map[string]interface{})["hostname"] = hostname
+
 	traceData["trace_id"] = uuid.New().String()
 	traceData["span_id"] = uuid.New().String()
 
@@ -33,6 +39,9 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 	// 下流サービスの呼び出し（B3ヘッダーでトレース情報を伝搬）
 	authorized := callAuthService(r, traceData)
 	name := callNameService(r, traceData)
+
+	// カスタムフィールドの追加（書籍6.4節）
+	traceData["tags"].(map[string]interface{})["user_name"] = name
 
 	// レスポンス生成
 	w.Header().Set("Content-Type", "application/json")
